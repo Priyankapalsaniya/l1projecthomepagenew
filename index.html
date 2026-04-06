@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Home Page of my website</title>
+</head>
+<body>
+  <h1>Welcome to frontend</h1>
+
+  <h2>Upload Bill</h2>
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="bill" required />
+    <button type="submit">Upload</button>
+  </form>
+
+  <h2>Newsletter Signup</h2>
+  <form action="/subscribe" method="post">
+    <input type="email" name="email" required />
+    <button type="submit">Subscribe</button>
+  </form>
+</body>
+</html>
