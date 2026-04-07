@@ -1,4 +1,4 @@
-require("dotenv").config(); // ✅ MUST be first
+require("dotenv").config(); // MUST be first
 
 const mysql = require("mysql2");
 const express = require("express");
@@ -9,14 +9,14 @@ const path = require("path");
 
 const app = express();
 
-/* ✅ Body parsers (ONLY ONCE) */
+/* Body parsers */
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-/* ✅ Static files */
+/* Static files */
 app.use(express.static(path.join(__dirname, "public")));
 
-/* ✅ Ensure uploads folder exists */
+/* Ensure uploads folder exists */
 if (!fs.existsSync("uploads")) {
   fs.mkdirSync("uploads");
 }
@@ -24,7 +24,12 @@ if (!fs.existsSync("uploads")) {
 const upload = multer({ dest: "uploads/" });
 
 /* ================= AWS S3 ================= */
-AWS.config.update({ region: "us-east-1" });
+AWS.config.update({
+  region: "us-east-1",
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+});
+
 const s3 = new AWS.S3();
 
 /* ================= RDS CONNECTION ================= */
@@ -50,26 +55,31 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-/* File Upload */
+/* ✅ File Upload (FIXED + DEBUG ADDED) */
 app.post("/upload", upload.single("bill"), (req, res) => {
+  console.log("📂 File received:", req.file);
+
   if (!req.file) {
     return res.status(400).send("❌ No file uploaded");
   }
 
   const params = {
-    Bucket: "customer-bills1new",
+    Bucket: process.env.S3_BUCKET, // use env variable
     Key: `${Date.now()}-${req.file.originalname}`,
     Body: fs.createReadStream(req.file.path),
     ContentType: req.file.mimetype
   };
 
-  s3.upload(params, (err) => {
+  s3.upload(params, (err, data) => {
     if (err) {
       console.error("❌ S3 Upload Error:", err);
       return res.status(500).send("❌ Upload failed");
     }
 
-    fs.unlinkSync(req.file.path); // delete local file
+    console.log("✅ File uploaded to S3:", data.Location);
+
+    fs.unlinkSync(req.file.path);
+
     res.send("✅ File uploaded successfully");
   });
 });
@@ -95,8 +105,7 @@ app.post("/subscribe", (req, res) => {
   );
 });
 
-/* ================= SERVER ================= */
+/* Server */
 app.listen(8080, "0.0.0.0", () => {
   console.log("🚀 Server running on port 8080");
 });
-
