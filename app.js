@@ -1,6 +1,6 @@
 require("dotenv").config(); // ✅ MUST be first
 
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const express = require("express");
 const multer = require("multer");
 const AWS = require("aws-sdk");
