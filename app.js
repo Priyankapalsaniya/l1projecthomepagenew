@@ -30,7 +30,9 @@ AWS.config.update({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 });
 
-const s3 = new AWS.S3();
+const s3 = new AWS.S3({
+  region: "us-east-1" 
+});
 
 /* ================= RDS CONNECTION ================= */
 const db = mysql.createConnection({
@@ -63,20 +65,22 @@ app.post("/upload", upload.single("bill"), (req, res) => {
     return res.status(400).send("❌ No file uploaded");
   }
 
+  console.log("Bucket:", process.env.S3_BUCKET);
+
   const params = {
-    Bucket: process.env.S3_BUCKET, // use env variable
+    Bucket: process.env.S3_BUCKET,
     Key: `${Date.now()}-${req.file.originalname}`,
-    Body: fs.createReadStream(req.file.path),
+    Body: fs.readFileSync(req.file.path),
     ContentType: req.file.mimetype
   };
 
   s3.upload(params, (err, data) => {
     if (err) {
       console.error("❌ S3 Upload Error:", err);
-      return res.status(500).send("❌ Upload failed");
+      return res.status(500).send(err.message);
     }
 
-    console.log("✅ File uploaded to S3:", data.Location);
+    console.log("✅ File uploaded:", data.Location);
 
     fs.unlinkSync(req.file.path);
 
