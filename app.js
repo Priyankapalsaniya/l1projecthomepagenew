@@ -24,7 +24,7 @@ if (!fs.existsSync("uploads")) {
 const upload = multer({ dest: "uploads/" });
 
 /* ================= AWS S3 ================= */
-AWS.config.update({ region: "us-east-2" });
+AWS.config.update({ region: "us-east-1" });
 const s3 = new AWS.S3();
 
 /* ================= RDS CONNECTION ================= */
@@ -57,7 +57,7 @@ app.post("/upload", upload.single("bill"), (req, res) => {
   }
 
   const params = {
-    Bucket: "customer-bills1",
+    Bucket: "customer-bills1new",
     Key: `${Date.now()}-${req.file.originalname}`,
     Body: fs.createReadStream(req.file.path),
     ContentType: req.file.mimetype
@@ -96,7 +96,7 @@ app.post("/subscribe", (req, res) => {
 });
 
 /* ================= SERVER ================= */
-app.listen(3000, "0.0.0.0", () => {
-  console.log("🚀 Server running on port 3000");
+app.listen(8080, "0.0.0.0", () => {
+  console.log("🚀 Server running on port 8080");
 });
 
